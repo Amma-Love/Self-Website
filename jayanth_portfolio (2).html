@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jayanth - Interactive Experience</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #5a7d9a;
+            --secondary: #8b9d83;
+            --accent: #c49b7c;
+            --dark: #2c3e50;
+            --light: #f4f1ea;
+            --text: #34495e;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--light) 0%, #e8e4dc 100%);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            cursor: none;
+            transition: background 0.5s ease;
+        }
+
+        body.night-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+        }
+
+        /* Custom Cursor with Magnetic Effect */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+        }
+
+        .cursor.magnetic {
+            transform: translate(-50%, -50%) scale(2.5);
+            border-color: var(--accent);
+        }
+
+        .cursor-follower {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--accent);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translate(-50%, -50%);
+            opacity: 0.5;
+        }
+
+        /* Start Experience Screen */
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a2332 0%, #2c3e50 50%, #34495e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+            transition: opacity 1s ease, visibility 1s ease;
+        }
+
+        .start-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .start-title {
+            font-size: 5em;
+            color: white;
+            font-weight: 200;
+            letter-spacing: 15px;
+            margin-bottom: 40px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .start-button {
+            padding: 20px 60px;
+            font-size: 1.2em;
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .start-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: white;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .start-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .start-button:hover {
+            color: var(--dark);
+            transform: scale(1.1);
+            box-shadow: 0 10px 40px rgba(255,255,255,0.3);
+        }
+
+        .start-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Guided Experience Overlay */
+        .experience-overlay {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(44, 62, 80, 0.95);
+            color: white;
+            padding: 25px 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            z-index: 9000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .experience-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .caption-text {
+            font-size: 1.1em;
+            letter-spacing: 1px;
+            line-height: 1.6;
+        }
+
+        .progress-dots {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: white;
+            transform: scale(1.3);
+        }
+
+        /* AI Guide Orb */
+        .ai-guide {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 9000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 40px rgba(90, 125, 154, 0.4);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: orbPulse 3s ease-in-out infinite;
+        }
+
+        .ai-guide:hover {
+            transform: scale(1.2);
+            box-shadow: 0 15px 50px rgba(90, 125, 154, 0.6);
+        }
+
+        .ai-guide::before {
+            content: '🤖';
+            font-size: 2em;
+        }
+
+        .ai-panel {
+            position: fixed;
+            bottom: 120px;
+            right: 30px;
+            width: 350px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 8999;
+        }
+
+        .ai-panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .ai-prompt {
+            margin: 10px 0;
+            padding: 15px;
+            background: var(--light);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .ai-prompt:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        /* Live Status Bar */
+        .status-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(15px);
+            z-index: 8000;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2ecc71;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        /* Controls Panel */
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 8000;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3em;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .control-btn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Parallax Background with Physics */
+        .parallax-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bg-circle-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            top: 10%;
+            left: 10%;
+        }
+
+        .bg-circle-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--secondary);
+            bottom: 20%;
+            right: 15%;
+        }
+
+        .bg-circle-3 {
+            width: 250px;
+            height: 250px;
+            background: var(--accent);
+            top: 50%;
+            right: 30%;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            padding: 120px 0 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 5em;
+            color: var(--primary);
+            margin-bottom: 10px;
+            letter-spacing: 8px;
+            font-weight: 200;
+            position: relative;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        h1:hover {
+            transform: scale(1.05);
+            letter-spacing: 12px;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            color: var(--secondary);
+            font-weight: 300;
+            letter-spacing: 3px;
+        }
+
+        .divider {
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            margin: 30px auto;
+            border-radius: 2px;
+            animation: pulse 2s infinite;
+        }
+
+        /* Character Section with Physics */
+        .character-section {
+            margin: 80px 0;
+            text-align: center;
+            perspective: 1000px;
+        }
+
+        .character-container {
+            display: inline-block;
+            position: relative;
+            margin: 40px 0;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .character {
+            width: 200px;
+            height: 300px;
+            position: relative;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .character-head {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            margin: 0 auto;
+            position: relative;
+            animation: headBob 2s ease-in-out infinite;
+        }
+
+        .character-body {
+            width: 100px;
+            height: 120px;
+            background: linear-gradient(180deg, var(--secondary), var(--accent));
+            margin: 10px auto;
+            border-radius: 50px 50px 0 0;
+            position: relative;
+        }
+
+        .character-arm {
+            width: 60px;
+            height: 15px;
+            background: var(--secondary);
+            position: absolute;
+            top: 20px;
+            border-radius: 10px;
+        }
+
+        .character-arm.left {
+            left: -20px;
+            transform-origin: right;
+            animation: armSwing 1.5s ease-in-out infinite;
+        }
+
+        .character-arm.right {
+            right: -20px;
+            transform-origin: left;
+            animation: armSwing 1.5s ease-in-out infinite reverse;
+        }
+
+        .character-leg {
+            width: 35px;
+            height: 80px;
+            background: var(--primary);
+            position: absolute;
+            bottom: -80px;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .character-leg.left {
+            left: 20px;
+            animation: legWalk 1s ease-in-out infinite;
+        }
+
+        .character-leg.right {
+            right: 20px;
+            animation: legWalk 1s ease-in-out infinite reverse;
+        }
+
+        .section {
+            margin: 100px 0;
+            transform: translateY(50px);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .section-title {
+            font-size: 2.5em;
+            color: var(--dark);
+            margin-bottom: 40px;
+            font-weight: 300;
+            position: relative;
+            display: inline-block;
+            letter-spacing: 3px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section.visible .section-title::after {
+            width: 100%;
+        }
+
+        /* Info Cards with Magnetic Effect */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 35px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(90, 125, 154, 0.2);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            transform: scale(0.9);
+            opacity: 0;
+            will-change: transform;
+        }
+
+        .section.visible .info-card {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(90, 125, 154, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+        }
+
+        .info-card:hover::before {
+            left: 100%;
+        }
+
+        .info-card:hover {
+            transform: translateY(-20px) scale(1.05);
+            box-shadow: 0 25px 50px rgba(90, 125, 154, 0.3);
+            border-color: var(--primary);
+        }
+
+        .info-label {
+            font-size: 0.85em;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .info-value {
+            font-size: 1.5em;
+            color: var(--dark);
+            font-weight: 500;
+        }
+
+        /* Skills with Progress Bars */
+        .skills-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .skill-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(139, 157, 131, 0.3);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-card:hover {
+            transform: translateY(-25px) scale(1.05);
+            box-shadow: 0 30px 60px rgba(139, 157, 131, 0.4);
+            border-color: var(--secondary);
+        }
+
+        .skill-icon {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            display: block;
+            animation: iconBounce 2s ease-in-out infinite;
+        }
+
+        .skill-name {
+            font-size: 1.8em;
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .skill-detail {
+            color: var(--text);
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .skill-progress {
+            width: 100%;
+            height: 8px;
+            background: rgba(90, 125, 154, 0.2);
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .skill-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 10px;
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0;
+        }
+
+        .skill-card:hover .skill-progress-bar {
+            width: var(--progress);
+        }
+
+        /* Language Tags */
+        .languages-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 40px;
+            justify-content: center;
+        }
+
+        .language-tag {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 18px 35px;
+            border-radius: 30px;
+            font-size: 1.2em;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .language-tag::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: all 0.6s ease;
+        }
+
+        .language-tag:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .language-tag:hover {
+            transform: scale(1.15);
+            box-shadow: 0 15px 30px rgba(90, 125, 154, 0.4);
+        }
+
+        /* Hobbies Grid */
+        .hobbies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .hobby-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid rgba(196, 155, 124, 0.3);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hobby-item:hover {
+            transform: translateY(-20px) scale(1.05);
+            box-shadow: 0 25px 50px rgba(196, 155, 124, 0.3);
+            border-color: var(--accent);
+        }
+
+        .hobby-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: inline-block;
+            animation: iconRotate 4s ease-in-out infinite;
+        }
+
+        footer {
+            text-align: center;
+            padding: 60px 0;
+            margin-top: 100px;
+            color: var(--secondary);
+            font-size: 1em;
+            letter-spacing: 1px;
+        }
+
+        /* Animations */
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+            50% { text-shadow: 0 0 40px rgba(255,255,255,0.8); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scaleX(1); opacity: 1; }
+            50% { transform: scaleX(1.2); opacity: 0.8; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-25px); }
+        }
+
+        @keyframes headBob {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+
+        @keyframes armSwing {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(25deg); }
+        }
+
+        @keyframes legWalk {
+            0%, 100% { transform: translateX(0px) rotate(0deg); }
+            50% { transform: translateX(8px) rotate(15deg); }
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes iconRotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(15deg); }
+        }
+
+        @keyframes orbPulse {
+            0%, 100% { box-shadow: 0 10px 40px rgba(90, 125, 154, 0.4); }
+            50% { box-shadow: 0 10px 60px rgba(90, 125, 154, 0.7); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 3em; }
+            .section-title { font-size: 2em; }
+            .cursor, .cursor-follower { display: none; }
+            body { cursor: auto; }
+            .ai-panel { width: 280px; }
+            .status-bar { flex-direction: column; gap: 10px; }
+        }
+
+        /* Performance: GPU acceleration */
+        .info-card, .skill-card, .hobby-item, .language-tag {
+            will-change: transform;
+            transform: translateZ(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+
+    <!-- Start Experience Screen -->
+    <div class="start-screen">
+        <h1 class="start-title">JAYANTH</h1>
+        <button class="start-button" id="startBtn">
+            <span>BEGIN EXPERIENCE</span>
+        </button>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="controls">
+        <button class="control-btn" id="soundBtn" title="Toggle Sound">🔊</button>
+        <button class="control-btn" id="nightBtn" title="Night Mode">🌙</button>
+    </div>
+
+    <!-- Live Status Bar -->
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-indicator"></span>
+            <span id="localTime">00:00</span>
+        </div>
+        <div class="status-item">
+            <span>Currently learning: React</span>
+        </div>
+        <div class="status-item" id="deviceInfo">
+            Desktop View
+        </div>
+    </div>
+
+    <!-- Guided Experience Overlay -->
+    <div class="experience-overlay" id="experienceOverlay">
+        <p class="caption-text" id="captionText">Welcome to my interactive journey...</p>
+        <div class="progress-dots">
+            <div class="dot active"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
+            <!-- AI Guide Orb -->
+    <div class="ai-guide" id="aiGuide"></div>
+    <div class="ai-panel" id="aiPanel">
+        <h3 style="margin-bottom: 20px; color: var(--primary);">AI Assistant</h3>
+        <div id="aiContent">
+            <div class="ai-prompt" data-prompt="skills">Explain my skills</div>
+            <div class="ai-prompt" data-prompt="journey">My learning journey</div>
+            <div class="ai-prompt" data-prompt="future">Future goals</div>
+            <div class="ai-prompt" data-prompt="contact">How to connect</div>
+            <div class="ai-prompt" data-prompt="custom">Ask custom question</div>
+        </div>
+        <div id="aiResponse" style="display: none; margin-top: 20px; padding: 15px; background: var(--light); border-radius: 10px; border-left: 3px solid var(--primary);">
+            <div id="aiResponseText" style="margin-bottom: 10px;"></div>
+            <button id="backBtn" style="padding: 8px 20px; background: var(--primary); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 0.9em;">Back</button>
+        </div>
+        <div id="customInput" style="display: none; margin-top: 20px;">
+            <input type="text" id="customQuestion" placeholder="Ask me anything..." style="width: 100%; padding: 12px; border: 2px solid var(--primary); border-radius: 10px; margin-bottom: 10px; font-size: 1em;">
+            <div style="display: flex; gap: 10px;">
+                <button id="askBtn" style="flex: 1; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer;">Ask</button>
+                <button id="cancelBtn" style="flex: 1; padding: 10px; background: var(--secondary); color: white; border: none; border-radius: 10px; cursor: pointer;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parallax Background -->
+    <div class="parallax-bg">
+        <div class="bg-circle bg-circle-1"></div>
+        <div class="bg-circle bg-circle-2"></div>
+        <div class="bg-circle bg-circle-3"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>JAYANTH</h1>
+            <div class="divider"></div>
+            <p class="subtitle">Student • Musician • Martial Artist</p>
+        </header>
+
+        <div class="character-section">
+            <div class="character-container" id="character">
+                <div class="character">
+                    <div class="character-head"></div>
+                    <div class="character-body">
+                        <div class="character-arm left"></div>
+                        <div class="character-arm right"></div>
+                    </div>
+                    <div class="character-leg left"></div>
+                    <div class="character-leg right"></div>
+                </div>
+            </div>
+        </div>
+
+        <section class="section" data-caption="I'm 16, studying in Grade 11 in Bengaluru, a city of innovation">
+            <h2 class="section-title">About Me</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-label">Date of Birth</div>
+                    <div class="info-value">24 August 2009</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Grade</div>
+                    <div class="info-value">11</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">City</div>
+                    <div class="info-value">Bengaluru</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Native Language</div>
+                    <div class="info-value">Tamil</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" data-caption="A decade of rhythm, discipline, and dedication across multiple art forms">
+            <h2 class="section-title">Skills & Achievements</h2>
+            <div class="skills-container">
+                <div class="skill-card">
+                    <span class="skill-icon">🥁</span>
+                    <div class="skill-name">Tabla</div>
+                    <div class="skill-detail">10 years of dedication to classical Indian percussion</div>
+                    <div class="skill-progress">
+                        <div class="skill-progress-bar" style="--progress: 95%"></div>
+                    </div>
+                </div>
+                <div class="skill-card">
+                    <span class="skill-icon">🎵</span>
+                    <div class="skill-name">Drums</div>
+                    <div class="skill-detail">3 years of modern drumming experience</div>
+                    <div class="skill-progress">
+                        <div class="skill-progress-bar" style="--progress: 75%"></div>
+                    </div>
+                </div>
+                <div class="skill-card">
+                    <span class="skill-icon">🥋</span>
+                    <div class="skill-name">Karate</div>
+                    <div class="skill-detail">8 years of martial arts training • Black Belt I</div>
+                    <div class="skill-progress">
+                        <div class="skill-progress-bar" style="--progress: 90%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" data-caption="Fluent in five languages - bridging cultures across South India">
+            <h2 class="section-title">Languages</h2>
+            <div class="languages-list">
+                <div class="language-tag">Tamil</div>
+                <div class="language-tag">English</div>
+                <div class="language-tag">Hindi</div>
+                <div class="language-tag">Kannada</div>
+                <div class="language-tag">Malayalam</div>
+            </div>
+        </section>
+
+        <section class="section" data-caption="Curiosity drives me - from automotive engineering to cinematic storytelling">
+            <h2 class="section-title">Interests & Hobbies</h2>
+            <div class="hobbies-grid">
+                <div class="hobby-item">
+                    <div class="hobby-icon">🚗</div>
+                    <div>Automotive Enthusiast</div>
+                </div>
+                <div class="hobby-item">
+                    <div class="hobby-icon">🎬</div>
+                    <div>Cinema & Films</div>
+                </div>
+                <div class="hobby-item">
+                    <div class="hobby-icon">💻</div>
+                    <div>Technology</div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>© 2026 Jayanth • Bengaluru, India</p>
+            <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.7;">Designed with narrative intelligence and context-aware animations</p>
+        </footer>
+    </div>
+
+    <script>
+        // Audio Context for Sound Design
+        let audioContext;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(frequency, duration, volume = 0.1) {
+            if (!soundEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // Custom Cursor System
+        const cursor = document.querySelector('.cursor');
+        const follower = document.querySelector('.cursor-follower');
+        let mouseX = 0, mouseY = 0;
+        let cursorX = 0, cursorY = 0;
+        let followerX = 0, followerY = 0;
+        let mouseIdleTimer;
+        let isMouseIdle = false;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            clearTimeout(mouseIdleTimer);
+            isMouseIdle = false;
+            updateAnimationSpeed(1);
+            
+            mouseIdleTimer = setTimeout(() => {
+                isMouseIdle = true;
+                updateAnimationSpeed(0.5);
+            }, 2000);
+        });
+
+        function animateCursor() {
+            const speed = isMouseIdle ? 0.05 : 0.2;
+            
+            cursorX += (mouseX - cursorX) * speed;
+            cursorY += (mouseY - cursorY) * speed;
+            
+            followerX += (mouseX - followerX) * (speed * 0.5);
+            followerY += (mouseY - followerY) * (speed * 0.5);
+            
+            cursor.style.left = cursorX + 'px';
+            cursor.style.top = cursorY + 'px';
+            follower.style.left = followerX + 'px';
+            follower.style.top = followerY + 'px';
+            
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // Magnetic Effect on Interactive Elements
+        const magneticElements = document.querySelectorAll('.info-card, .skill-card, .hobby-item, .language-tag, .control-btn, .start-button');
+        
+        magneticElements.forEach(el => {
+            el.addEventListener('mouseenter', (e) => {
+                cursor.classList.add('magnetic');
+                playSound(800, 0.1, 0.05);
+                
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(10);
+                }
+            });
+            
+            el.addEventListener('mouseleave', () => {
+                cursor.classList.remove('magnetic');
+            });
+            
+            el.addEventListener('mousemove', (e) => {
+                const rect = el.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                
+                const moveX = x * 0.15;
+                const moveY = y * 0.15;
+                
+                el.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.02)`;
+            });
+            
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = '';
+            });
+        });
+
+        // Parallax System with Physics
+        let parallaxX = 0, parallaxY = 0;
+        const parallaxSpeed = 0.05;
+
+        document.addEventListener('mousemove', (e) => {
+            const targetX = (e.clientX / window.innerWidth - 0.5) * 50;
+            const targetY = (e.clientY / window.innerHeight - 0.5) * 50;
+            
+            parallaxX += (targetX - parallaxX) * parallaxSpeed;
+            parallaxY += (targetY - parallaxY) * parallaxSpeed;
+            
+            document.querySelectorAll('.bg-circle').forEach((circle, index) => {
+                const speed = (index + 1) * 0.3;
+                circle.style.transform = `translate(${parallaxX * speed}px, ${parallaxY * speed}px)`;
+            });
+        });
+
+        // Start Experience Flow
+        const startScreen = document.querySelector('.start-screen');
+        const startBtn = document.getElementById('startBtn');
+        const experienceOverlay = document.getElementById('experienceOverlay');
+        const captionText = document.getElementById('captionText');
+        let experienceMode = false;
+        let currentStep = 0;
+
+        const captions = [
+            "Welcome to my interactive journey...",
+            "I'm 16, studying in Grade 11 in Bengaluru, a city of innovation",
+            "A decade of rhythm, discipline, and dedication across multiple art forms",
+            "Fluent in five languages - bridging cultures across South India",
+            "Curiosity drives me - from automotive engineering to cinematic storytelling"
+        ];
+
+        startBtn.addEventListener('click', () => {
+            initAudio();
+            playSound(440, 0.3, 0.1);
+            startScreen.classList.add('hidden');
+            
+            setTimeout(() => {
+                experienceMode = true;
+                experienceOverlay.classList.add('active');
+                updateCaption(0);
+            }, 1000);
+        });
+
+        function updateCaption(step) {
+            if (step >= captions.length) {
+                experienceOverlay.classList.remove('active');
+                return;
+            }
+            
+            captionText.textContent = captions[step];
+            
+            document.querySelectorAll('.dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === step);
+            });
+            
+            playSound(600 + step * 100, 0.2, 0.05);
+        }
+
+        // Scroll Detection System
+        let lastScrollY = window.scrollY;
+        let scrollSpeed = 0;
+        let isScrollingFast = false;
+
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            scrollSpeed = Math.abs(currentScrollY - lastScrollY);
+            lastScrollY = currentScrollY;
+            
+            isScrollingFast = scrollSpeed > 50;
+            
+            if (experienceMode) {
+                const sections = document.querySelectorAll('.section');
+                sections.forEach((section, index) => {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top < window.innerHeight / 2 && rect.bottom > window.innerHeight / 2) {
+                        if (currentStep !== index + 1) {
+                            currentStep = index + 1;
+                            updateCaption(currentStep);
+                        }
+                    }
+                });
+            }
+        });
+
+        // Animation Speed Controller
+        function updateAnimationSpeed(multiplier) {
+            document.documentElement.style.setProperty('--animation-speed', multiplier);
+        }
+
+        // Scroll Reveal with Context
+        const observerOptions = {
+            threshold: 0.15,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    playSound(500, 0.2, 0.03);
+                } else if (entry.boundingClientRect.top > 0) {
+                    // Reverse animation when scrolling back up
+                    entry.target.classList.remove('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // AI Guide System
+        const aiGuide = document.getElementById('aiGuide');
+        const aiPanel = document.getElementById('aiPanel');
+        let aiPanelOpen = false;
+
+        aiGuide.addEventListener('click', () => {
+            aiPanelOpen = !aiPanelOpen;
+            aiPanel.classList.toggle('active', aiPanelOpen);
+            playSound(1000, 0.15, 0.05);
+        });
+
+        document.querySelectorAll('.ai-prompt').forEach(prompt => {
+            prompt.addEventListener('click', function() {
+                const promptType = this.dataset.prompt;
+                const responses = {
+                    skills: "I've been training in tabla for 10 years, combining classical Indian percussion with modern drumming. My karate Black Belt represents 8 years of discipline and physical mastery.",
+                    journey: "My journey started with music at age 6, evolved through martial arts, and now extends into technology and automotive engineering. Every skill builds on the last.",
+                    future: "I'm focused on combining my creative skills with technology - exploring how AI can enhance musical composition and how engineering principles apply to everything I do.",
+                    contact: "Connect with me through this portfolio. I'm always open to collaborations, discussions about music, martial arts, or technology."
+                };
+                
+                alert(responses[promptType]);
+                playSound(1200, 0.2, 0.05);
+            });
+        });
+
+        // Live Status Updates
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('localTime').textContent = `${hours}:${minutes}`;
+        }
+        updateTime();
+        setInterval(updateTime, 60000);
+
+        // Device Detection
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        document.getElementById('deviceInfo').textContent = isMobile ? 'Mobile View' : 'Desktop View';
+
+        // Night Mode Toggle
+        const nightBtn = document.getElementById('nightBtn');
+        let nightMode = false;
+
+        nightBtn.addEventListener('click', () => {
+            nightMode = !nightMode;
+            document.body.classList.toggle('night-mode', nightMode);
+            nightBtn.textContent = nightMode ? '☀️' : '🌙';
+            playSound(400, 0.2, 0.05);
+        });
+
+        // Auto night mode based on time
+        const hour = new Date().getHours();
+        if (hour >= 20 || hour < 6) {
+            nightMode = true;
+            document.body.classList.add('night-mode');
+            nightBtn.textContent = '☀️';
+        }
+
+        // Sound Toggle
+        const soundBtn = document.getElementById('soundBtn');
+        soundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+            if (soundEnabled) initAudio();
+        });
+
+        // Click Feedback
+        let clickCount = 0;
+        let clickTimer;
+
+        document.addEventListener('click', (e) => {
+            clickCount++;
+            clearTimeout(clickTimer);
+            
+            if (clickCount > 5) {
+                document.body.style.animation = 'shake 0.3s';
+                setTimeout(() => document.body.style.animation = '', 300);
+                clickCount = 0;
+            }
+            
+            clickTimer = setTimeout(() => clickCount = 0, 1000);
+        });
+
+        // Performance: Reduce motion for users who prefer it
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.querySelectorAll('*').forEach(el => {
+                el.style.animation = 'none';
+                el.style.transition = 'none';
+            });
+        }
+
+        // Battery-aware effects (if API available)
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(battery => {
+                if (battery.level < 0.2) {
+                    // Reduce animations on low battery
+                    document.documentElement.style.setProperty('--animation-speed', '0.5');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
